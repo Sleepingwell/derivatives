@@ -20,6 +20,7 @@
 #define SK_DERIVIITIVES_HEADER_INCLUDED_298YWDOIKJHWOTUYHWOKJGNLIUHWT
 
 #include <cmath>
+#include <boost/static_assert.hpp>
 #include <boost/call_traits.hpp>
 #include <boost/mpl/and.hpp>
 #include <boost/mpl/if.hpp>
@@ -363,32 +364,6 @@ namespace SKT { namespace derivatives {
 				typedef Zero type;
 				static type create(DPARM(L) l, DPARM(R) r) { return Zero(); }
 			};
-
-			//-----
-			// The following wouldn't work since:
-			// 1. variables are held by reference (so there is only one copy of each) - changing the sign would be, well, problematic.
-			// 2. even if they were not, how would I represent a negative variable (this does not fit with the way I find derivatives)?
-			// Since the the value of variables before the expression is all that matters, copying them and changing sign would be ok and
-			// having a templated version of the variables class could be used in defining the derivatives (which would be -1 and 1, rather
-			// than just one upon evaluation.
-			//-----
-			//template<typename LB, typename L, typename R, bool>
-			//struct Impl {
-			//	typedef Expression<L, OpMinus, R> type;
-			//};
-
-			//template<typename LB, typename L, typename R>
-			//struct Impl {
-			//	typedef Numeric type;
-			//	static type create(DPARM(L) l, DPARM(R) r) { /*... what to do here?*/ }
-			//};
-			//
-
-			//template<typename LB, typename L, typename R>
-			//struct apply<LB, Zero, L, R> : Impl<Lb, L, R, mpl::and_<
-			//	is_base_and_derived< Numeric, LB >::value,
-			//	mpl::not_< is_same < Numeric, LB >::value >::value
-			//> > {};
 		};
 
 		template<typename WRT, typename L, typename R>
@@ -590,7 +565,6 @@ namespace SKT { namespace derivatives {
 			template< typename L, typename R, typename LB>
 			struct oth_left {
 				typedef typename Creator< LB, OpPower, typename Creator<Numeric, OpTimes, Numeric>::type >::type type;
-
 				static type create(DPARM(L) l, DPARM(R) r) {
 					return pow(l.l, l.r * r);
 				}
@@ -598,7 +572,7 @@ namespace SKT { namespace derivatives {
 
 			template<typename L, typename R, typename LB, typename RB>
 			struct apply<Expression<LB, OpPower, RB>, Numeric, L, R> : mpl::if_<
-				is_same< Numeric, typename remove_all< RB >::type >,
+				is_same< typename remove_all< RB >::type, Numeric >,
 				oth_left< L, R, LB >,
 				Private::DefaultExpression< L, OpPower, R, LB, RB >
 			>::type {};
@@ -651,11 +625,18 @@ namespace SKT { namespace derivatives {
 				static type create(DPARM(L) l, DPARM(R) r) { return l; }
 			};
 
-			//template<typename L, typename R>
-			//struct apply<Zero, One, L, R> {
-			//	typedef Zero type;
-			//	static type create(DPARM(L) l, DPARM(R) r) { return Zero(); }
-			//};
+			template<typename L, typename R>
+			struct apply<Zero, One, L, R> {
+				typedef Zero type;
+				static type create(DPARM(L) l, DPARM(R) r) { return Zero(); }
+			};
+
+			template<typename LB, typename L, typename R>
+			struct apply<LB, Zero, L, R> {
+				BOOST_STATIC_ASSERT_MSG(false, "attempted division by Zero");
+				typedef Zero type;
+				static type create(DPARM(L) l, DPARM(R) r) { return Zero(); }
+			};
 		};
 
 		template<typename WRT, typename L, typename R>
@@ -783,7 +764,6 @@ namespace SKT { namespace derivatives {
 			typedef One type;
 		};
 	} // end namespace Private
-	
 } } // end namespace derivatives, end namespace SKT
 
 //--------------------------------------------------------------------
