@@ -81,15 +81,15 @@ namespace SKT { namespace derivatives {
 	template<int N, typename T, typename WRT> struct DerivativeProxy; // forward def
 
 	struct Zero : differentiable_class_tag {
-		double eval(void) const { return 0.0; }
+		static double eval(void) const { return 0.0; }
 		template<typename T> struct GetDeravitive { static Zero deriv(DPARM(Zero), DPARM(T)) { return Zero(); } };
-		void print(void) const { printf("Zero"); }
+		static void print(void) const { printf("Zero"); }
 	};
 
 	struct One : differentiable_class_tag {
-		double eval(void) const { return 1.0; }
+		static double eval(void) const { return 1.0; }
 		template<typename T> struct GetDeravitive { static Zero deriv(DPARM(One), DPARM(T)) { return Zero(); } };
-		void print(void) const { printf("One"); }
+		static void print(void) const { printf("One"); }
 	};
 
 	struct Numeric {
@@ -187,10 +187,10 @@ namespace SKT { namespace derivatives {
 		typedef One type;
 	};
 
-	template<typename T>
-	struct DerivatorImpl<double, T> {
-		typedef Zero type;
-	};
+	//template<typename T>
+	//struct DerivatorImpl<double, T> {
+	//	typedef Zero type;
+	//};
 
 	template<typename T>
 	struct DerivatorImpl<Numeric, T> {
@@ -261,8 +261,8 @@ namespace SKT { namespace derivatives {
 
 		template<typename WRT>
 		struct GetDeravitive {
-			static typename Derivator<Expression, WRT>::type deriv(DPARM(Expression) exp, DPARM(WRT) wrt) {
-				return OP::deriv<WRT, left_type, right_type>(wrt, exp.l, exp.r);
+			static typename Derivator<Expression, WRT>::type deriv(DPARM(Expression) expr, DPARM(WRT) wrt) {
+				return OP::deriv<WRT, left_type, right_type>(wrt, expr.l, expr.r);
 			};
 		};
 
@@ -634,8 +634,8 @@ namespace SKT { namespace derivatives {
 			template<typename LB, typename L, typename R>
 			struct apply<LB, Zero, L, R> {
 				BOOST_STATIC_ASSERT_MSG(false, "attempted division by Zero");
-				typedef Zero type;
-				static type create(DPARM(L) l, DPARM(R) r) { return Zero(); }
+				//typedef Zero type;
+				//static type create(DPARM(L) l, DPARM(R) r) { return Zero(); }
 			};
 		};
 
